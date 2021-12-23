@@ -13,6 +13,7 @@ import { TabPanel } from './Components/TabPanel';
 import { NotificationContextProvider } from './Contexts/Notification';
 import { PestsContextProvider } from './Contexts/Pests';
 import { SymptomsContextProvider } from './Contexts/Symptoms';
+import { TreatmentsContextProvider } from './Contexts/Treatment';
 import { UserContextProvider } from './Contexts/User';
 
 
@@ -25,6 +26,20 @@ function a11yProps(index: number) {
 
 const theme = createTheme({
   //Edit template as wanted: https://mui.com/customization/theming/
+  palette: {
+    primary: {
+      main: '#354258',
+    },
+    secondary: {
+      main: '#009688',
+    },
+    error: {
+      main: '#f44336',
+    },
+    info: {
+      main: '#1565c0',
+    },
+  },
 });
 
 
@@ -61,9 +76,10 @@ function App() {
                 <Tab icon={<PestsIcon />} iconPosition="start" label="Pests" {...a11yProps(2)} />
               </Tabs>
             </AppBar>
-            
+
             {/* Content of the application */}
-            <SymptomsContextProvider>
+            <TreatmentsContextProvider>
+              <SymptomsContextProvider>
                 <PestsContextProvider>
                   <SwipeableViews
                     axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
@@ -82,10 +98,11 @@ function App() {
                   </SwipeableViews>
                 </PestsContextProvider>
               </SymptomsContextProvider>
+            </TreatmentsContextProvider>
             <AppNoficiation />
           </NotificationContextProvider>
         </Box>
-        
+
       </UserContextProvider>
     </ThemeProvider>
   );

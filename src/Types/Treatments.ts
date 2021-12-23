@@ -1,10 +1,5 @@
 import { Dispatch } from "react";
-
-export interface Treatment {
-    id?: string;
-    name: string;
-    itWorked?: boolean;
-}
+import { Treatment } from "./PlantGroups";
 
 export interface TreatmentsState {
     activeTreatment?: Treatment;

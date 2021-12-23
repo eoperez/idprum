@@ -32,14 +32,14 @@ const PestsContext = createContext<PestsContextType>({
 
 const pestsReducer = (pestsState: PestsState, action: PestAction) => {
     switch (action.type) {
-        case 'getSPests':
+        case 'getPests':
             return pestsState;
         
-        case 'insertSymptoms':
+        case 'insertPest':
             pestsState.pestsCollection.push(action.payload);
             return pestsState;
         
-        case 'getSymptom':
+        case 'getPest':
             return {...pestsState, 
                 activePest: pestsState.pestsCollection.find(pestObject => pestObject.id === action.payload.id)
             }

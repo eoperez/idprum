@@ -6,12 +6,14 @@ import { useContext, useState } from 'react';
 import { NotificationContext } from '../../../Contexts/Notification';
 import { PestsContext } from '../../../Contexts/Pests';
 import { SymptomsContext } from '../../../Contexts/Symptoms';
+import { TreatmentsContext } from '../../../Contexts/Treatment';
 import { PlantGroup } from '../../../Types/PlantGroups';
 import { PlantGroupForm } from '../../Forms/PlantGroups';
 
 export const PlantGroups = () => {
     const addBtnName: string = 'Plant Groups'
     const {notificationState, notificationDispatch} = useContext(NotificationContext);
+    const {treatmentsState, treatmentsDispatch} = useContext(TreatmentsContext)
     const {symptomsState, symptomsDispatch} = useContext(SymptomsContext);
     const {pestsState, pestsDispatch} = useContext(PestsContext);
     const [activeRecord, setActiveRecord] = useState<PlantGroup | undefined>();
@@ -162,7 +164,7 @@ export const PlantGroups = () => {
             >
                 <PlantGroupForm
                     recordToEdit={activeRecord}
-                    treatments={[]}
+                    treatments={treatmentsState.treatmentsCollection}
                     symptoms={symptomsState.symptomsCollection}
                     pests={pestsState.pestsCollection}
                     handleDrawerClose={handleDrawerClose}

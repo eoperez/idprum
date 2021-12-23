@@ -1,6 +1,8 @@
 import { Cancel, SaveAs, Yard, GppGood, GppBad} from '@mui/icons-material';
 import { Autocomplete, Button, Chip, createFilterOptions, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { ChangeEvent, Fragment, useEffect, useState } from 'react';
+import { ChangeEvent, Fragment, useEffect, useState, useContext } from 'react';
+import { NotificationContext } from '../../../Contexts/Notification';
+import { TreatmentsContext } from '../../../Contexts/Treatment';
 import { Pest } from '../../../Types/Pests';
 import { PlantGroup, PlantGroupFormProps, Treatment, TreatmentDialog } from '../../../Types/PlantGroups';
 import { Symptom } from '../../../Types/Symptoms';
@@ -13,19 +15,18 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
         name: '',
         itWorked: false,
     }
-    
-    const [platGroupRecord, setPlatGroupRecord] = useState<PlantGroup | undefined>(props.recordToEdit);
 
-    let actionType: string = 'New'
-    if(platGroupRecord){
-        actionType = 'Edit'
-    }
+    // Context needed
+    const {treatmentsState, treatmentsDispatch} = useContext(TreatmentsContext);
+    const {notificationState, notificationDispatch} = useContext(NotificationContext);
+    
     // States to hold values of selected options
+    const [platGroupRecord, setPlatGroupRecord] = useState<PlantGroup | undefined>(props.recordToEdit);
     const [activeFormRecord, setActiveFormRecord] = useState<any>(platGroupRecord);
     const [treatmentValue, setTreatmentValue] = useState<TreatmentDialog[]>(platGroupRecord?.treatments || []);
     const [symptomsValue, setSymptomsValue] = useState<Partial<Symptom>[]>(platGroupRecord?.symptoms || []);
     const [pestsValue, setPestValue] = useState<Partial<Pest>[]>(platGroupRecord?.pests || []);
-
+    
     // States to hold temp values for UI component behaviors 
     const [open, toggleOpen] = useState(false);
     const [dialogValue, setDialogValue] = useState(dialogInitialValue);
@@ -35,13 +36,17 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
     const [symptomsList, setSymptomsList] = useState<Partial<Symptom>[]>(props.symptoms);
     const [pestsList, setPestList] = useState<Partial<Pest>[]>(props.pests);
 
+    let actionType: string = 'New'
+    if(platGroupRecord){
+        actionType = 'Edit'
+    }
+
     // Watch changes on complex fields
     useEffect(() => {
         setActiveFormRecord({
             ...activeFormRecord,
             ['treatments']: treatmentValue
         });
-        console.log('updating treatmentValue:', treatmentValue);
     }, [treatmentValue]);
 
     useEffect(() => {
@@ -60,20 +65,30 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
 
     
 
-    const handleClose = () => {
+    const handleDialogClose = () => {
         setDialogValue(dialogInitialValue);
         toggleOpen(false);
     };
 
     const handleDialogFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const newValueCollection = treatmentValue;
-        newValueCollection.push({
-            name: dialogValue.name,
-            itWorked: dialogValue.itWorked,
-        });
-        setTreatmentValue(newValueCollection);
-        handleClose();
+        const newValueCollection = [...treatmentValue];
+        const foundInNewDialogTreatments = newValueCollection.find(treatmentObject => treatmentObject.name === dialogValue.name);
+        if (foundInNewDialogTreatments) {
+            console.log('Found in foundInNewDialogTreatments', foundInNewDialogTreatments);
+            notificationDispatch({type: 'setNotification', payload:{
+                type: "error",
+                message: "Treatment with selected name already added to the list",
+                isActive: true
+            }});
+        } else {
+            newValueCollection.push({
+                name: dialogValue.name,
+                itWorked: dialogValue.itWorked,
+            });
+            setTreatmentValue(newValueCollection);
+            handleDialogClose();
+        }
     };
 
     const handleRecordFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -82,9 +97,13 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
     };
 
     const onRecordFormFieldChange = (event: any) => {
+        let value = event.target.value;
+        if(event.target.name === "boolean"){
+            value = event.target.checked;
+        }
         setActiveFormRecord({
           ...activeFormRecord,
-          [event.target.id]: event.target.value
+          [event.target.id]: value
         });
     };
 
@@ -92,7 +111,6 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
         
         const newValue: any = selectionArray[selectionArray.length - 1];
         if (typeof newValue === 'string') {
-            console.log('when is a string', selectionArray);
             // timeout to avoid instant validation of the dialog's form.
             setTimeout(() => {
                 toggleOpen(true);
@@ -178,7 +196,7 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
                     </Grid>
                     <Grid item xs={4}>
                         <FormItem elevation={0}>
-                            <TextField fullWidth value={activeFormRecord?.commonName} onChange={onRecordFormFieldChange} label="Common Name" id="commonName" />
+                            <TextField required fullWidth value={activeFormRecord?.commonName} onChange={onRecordFormFieldChange} label="Common Name" id="commonName" />
                         </FormItem>
                     </Grid>
                     <Grid item xs={4}>
@@ -190,7 +208,7 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
                         <InDanger elevation={0}>
                             <FormControlLabel
                                 value="start"
-                                control={<Switch color="error" />}
+                                control={<Switch name="boolean" id='isInDanger' onChange={onRecordFormFieldChange}  color="error"/>}
                                 label="In danger specie?"
                                 labelPlacement="start"
                         />
@@ -279,7 +297,7 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
                     </Grid>
                 </Grid>
             </form>
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog open={open} onClose={handleDialogClose}>
             <form onSubmit={handleDialogFormSubmit}>
                 <DialogTitle>New treatment</DialogTitle>
                 <DialogContent>
@@ -308,7 +326,7 @@ export const PlantGroupForm = (props: PlantGroupFormProps) => {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleDialogClose}>Cancel</Button>
                     <Button type="submit">Add</Button>
                 </DialogActions>
             </form>
