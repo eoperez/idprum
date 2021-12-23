@@ -1,13 +1,7 @@
 {
   "short_name": "IDPRUM",
   "name": "Identification of Pest - RUM",
-  "icons": [
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    }
-  ],
+  "icons": [],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
